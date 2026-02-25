@@ -1,0 +1,2 @@
+# 直接用 npm exec 替代 npx（解决 npx 路径找不到的问题）
+npm exec lint-staged
