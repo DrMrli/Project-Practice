@@ -1,5 +1,6 @@
 {
   "name": "vite-project",
+  "main": "electron/main.js",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "prepare": "husky",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "electron:dev": "electron ." 
   },
   "dependencies": {
     "vue": "^3.5.25"
@@ -16,6 +18,8 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@vitejs/plugin-vue": "^6.0.2",
+    "electron": "^40.6.1",
+    "electron-builder": "^26.8.1",
     "eslint": "^10.0.2",
     "eslint-plugin-vue": "^10.8.0",
     "globals": "^17.3.0",
