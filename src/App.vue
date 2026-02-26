@@ -1,5 +1,9 @@
 <script setup>
 import HelloWorld from "./components/HelloWorld.vue";
+
+// 这是新加的代码
+const appTitle = import.meta.env.VITE_APP_TITLE;
+const apiUrl = import.meta.env.VITE_API_URL;
 </script>
 
 <template>
@@ -12,6 +16,12 @@ import HelloWorld from "./components/HelloWorld.vue";
     </a>
   </div>
   <HelloWorld msg="Vite + Vue" />
+  <!-- 这是新加的代码块 -->
+  <div class="env-info">
+    <h2>环境变量展示：</h2>
+    <p>应用标题 (VITE_APP_TITLE): <strong>{{ appTitle }}</strong></p>
+    <p>API 地址 (VITE_API_URL): <strong>{{ apiUrl }}</strong></p>
+  </div>
 </template>
 
 <style scoped>
