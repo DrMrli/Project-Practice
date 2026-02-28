@@ -1,85 +1,95 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
-const myOS = ref('正在查询...')
-const myArch = ref('正在查询...')
-const systemInfo = ref({})
-const debugInfo = ref('')
+// 用于显示版本号的变量
+const appVersion = ref('点击下方按钮查询')
 
-onMounted(() => {
-  console.log('App mounted, checking APIs...')
-  console.log('window object:', window)
-  console.log('window.systemInfo:', window.systemInfo)
-  
-  debugInfo.value = `window.systemInfo: ${typeof window.systemInfo}`
-  
-  // 检查注入的 systemInfo API
-  if (window.systemInfo) {
-    console.log('systemInfo found!')
-    console.log('systemInfo:', window.systemInfo)
-    
-    try {
-      myOS.value = `我的操作系统是：${window.systemInfo.getOS()}`
-      myArch.value = `我的CPU架构是：${window.systemInfo.getArch()}`
-      // 检查是否有getAllInfo方法
-      if (window.systemInfo.getAllInfo) {
-        systemInfo.value = window.systemInfo.getAllInfo()
-      } else {
-        // 如果没有getAllInfo方法，直接使用systemInfo对象
-        systemInfo.value = window.systemInfo
-      }
-    } catch (error) {
-      console.error('Error accessing systemInfo API:', error)
-      myOS.value = '访问API时出错'
-    }
-  } else {
-    console.log('No systemInfo API found!')
-    myOS.value = '无法访问系统API'
+// --- 单向通信的调用方法 ---
+function handleShowNotification() {
+  // 调用我们在 preload.js 中暴露的 sendNotification 方法
+  window.myAPI.sendNotification('这是来自Vue页面的一个IPC通知！')
+}
+
+// --- 双向通信的调用方法 ---
+// 使用 async/await 来处理异步操作
+async function handleGetVersion() {
+  appVersion.value = '正在查询...'
+  try {
+    // 使用 await 等待主进程的回复
+    const version = await window.myAPI.getAppVersion()
+    appVersion.value = `当前应用版本是：v${version}`
+  } catch (error) {
+    console.error('获取版本号失败:', error)
+    appVersion.value = '获取失败'
   }
-})
+}
 </script>
 
 <template>
-  <div class="info-card">
-    <h1>电脑信息</h1>
-    <p>{{ myOS }}</p>
-    <p>{{ myArch }}</p>
-    <div v-if="Object.keys(systemInfo).length > 0" class="detailed-info">
-      <h2>详细信息</h2>
-      <p>平台: {{ systemInfo.platform }}</p>
-      <p>类型: {{ systemInfo.type }}</p>
-      <p>版本: {{ systemInfo.release }}</p>
-      <p>内存总量: {{ systemInfo.totalMemory }}</p>
-      <p>可用内存: {{ systemInfo.freeMemory }}</p>
+  <div class="card-container">
+    <!-- 案例一：单向通信 -->
+    <div class="action-card">
+      <h2>案例一：单向通信 (send / on)</h2>
+      <p>点击按钮，主进程会弹出一个系统通知。</p>
+      <button @click="handleShowNotification">显示系统通知</button>
     </div>
-    <p class="debug">{{ debugInfo }}</p>
+
+    <!-- 案例二：双向通信 -->
+    <div class="action-card">
+      <h2>案例二：双向通信 (invoke / handle)</h2>
+      <p>点击按钮，从主进程获取应用版本号并显示。</p>
+      <p class="version-display">{{ appVersion }}</p>
+      <button @click="handleGetVersion">查询应用版本</button>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.info-card {
-  background: #f0f9ff;
-  border-left: 5px solid #0ea5e9;
-  padding: 20px;
-  margin: 50px;
-  border-radius: 8px;
-  text-align: center;
+.card-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
   font-family: sans-serif;
-  color: #000;
 }
 
-.detailed-info {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-  text-align: left;
-  color: #000;
+.action-card {
+  width: 80%;
+  max-width: 500px;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
-.debug {
-  margin-top: 20px;
-  font-size: 12px;
-  color: #666;
-  font-family: monospace;
+.action-card h2 {
+  margin-top: 0;
+  color: #1e40af;
+}
+
+.action-card p {
+  color: #374151;
+  min-height: 1.5em; /* 保证高度，防止按钮跳动 */
+}
+
+.version-display {
+  font-weight: bold;
+  color: #166534;
+}
+
+button {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #1d4ed8;
 }
 </style>

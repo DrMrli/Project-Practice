@@ -1,39 +1,28 @@
 // electron/preload.js
-console.log('Preload script starting...')
 
-try {
-  const os = require('os')
-  console.log('OS module loaded successfully')
-  
-  // 测试 os 模块
-  console.log('OS platform:', os.platform())
-  console.log('OS arch:', os.arch())
-  
-  // 直接在 window 对象上添加 API
-  window.myAPI = {
-    getOS: function() {
-      console.log('getOS called')
-      return os.platform()
-    },
-    getArch: function() {
-      console.log('getArch called')
-      return os.arch()
-    }
+const { contextBridge, ipcRenderer } = require('electron')
+
+// 我们将所有要暴露的API都放在 'myAPI' 这个命名空间下
+contextBridge.exposeInMainWorld('myAPI', {
+  /**
+   * 功能：单向通信 - 发送一个系统通知
+   * 用法：在Vue组件里调用 window.myAPI.sendNotification('一些消息')
+   * @param {string} message - 要在通知里显示的内容
+   */
+  sendNotification: (message) => {
+    // 使用 'show-notification' 这个我们自己定义的频道名
+    // 将消息发送到主进程
+    ipcRenderer.send('show-notification', message)
+  },
+
+  /**
+   * 功能：双向通信 - 从主进程获取应用的版本号
+   * 用法：在Vue组件里 const version = await window.myAPI.getAppVersion()
+   * @returns {Promise<string>} - 返回一个包含版本号字符串的Promise
+   */
+  getAppVersion: () => {
+    // 使用 'get-app-version' 这个频道名
+    // invoke 会等待主进程的 handle 回复
+    return ipcRenderer.invoke('get-app-version')
   }
-  
-  console.log('API exposed directly on window object!')
-  console.log('window.myAPI:', window.myAPI)
-  console.log('Preload script finished successfully!')
-} catch (error) {
-  console.error('Error in preload script:', error)
-  // 即使出错也创建一个基本的API对象
-  window.myAPI = {
-    getOS: function() {
-      return 'error: ' + error.message
-    },
-    getArch: function() {
-      return 'error: ' + error.message
-    }
-  }
-  console.log('Created fallback API due to error')
-}
+})
