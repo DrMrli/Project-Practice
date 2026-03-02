@@ -13,15 +13,19 @@ function handleShowNotification() {
 // --- 双向通信的调用方法 ---
 // 使用 async/await 来处理异步操作
 async function handleGetVersion() {
+  console.log('handleGetVersion 函数开始执行')
   appVersion.value = '正在查询...'
   try {
+    console.log('准备调用 window.myAPI.getAppVersion()')
     // 使用 await 等待主进程的回复
     const version = await window.myAPI.getAppVersion()
+    console.log('获取到版本号:', version)
     appVersion.value = `当前应用版本是：v${version}`
   } catch (error) {
     console.error('获取版本号失败:', error)
     appVersion.value = '获取失败'
   }
+  console.log('handleGetVersion 函数执行完成')
 }
 </script>
 

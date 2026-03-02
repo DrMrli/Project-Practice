@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "prepare": "husky",
     "lint-staged": "lint-staged",
-    "electron:dev": "electron ." 
+    "electron:dev": "electron --inspect=9229 ."
   },
   "dependencies": {
     "vue": "^3.5.25"
@@ -26,6 +26,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
+    "prettyjson": "^1.2.5",
     "vite": "^7.3.1"
   },
   "lint-staged": {
