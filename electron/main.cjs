@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain, Notification } = require('electron')
 const path = require('path')
 
 // 调试信息
@@ -10,9 +10,11 @@ const preloadPath = path.join(__dirname, 'preload.js')
 console.log('Preload script path:', preloadPath)
 
 function createWindow() {
+  console.log('Creating window...')
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    frame: false, // 隐藏默认窗口边框和标题栏
     webPreferences: {
       // --- 这是我们要修改的核心部分 ---
       // 1. 重新开启上下文隔离，这是安全的基石！
@@ -25,16 +27,36 @@ function createWindow() {
     }
   })
 
+  // 监听窗口事件
+  mainWindow.on('closed', () => {
+    console.log('Window closed')
+  })
+
+  mainWindow.on('ready-to-show', () => {
+    console.log('Window ready to show')
+    mainWindow.show()
+  })
 
   // 让这个窗口去加载我们Vite项目的网页地址
-  mainWindow.loadURL('http://localhost:5173')
+  console.log('Loading URL: http://localhost:5174')
+  mainWindow.loadURL('http://localhost:5174')
   
-  // 打开开发者工具，方便调试
-  mainWindow.webContents.openDevTools()
+  // 关闭开发者工具，正常显示应用
+  // mainWindow.webContents.openDevTools()
   
   // 监听preload脚本错误
   mainWindow.webContents.on('preload-error', (event, error) => {
     console.error('Preload script error:', error)
+  })
+  
+  // 监听导航完成
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Page loaded successfully')
+  })
+  
+  // 监听导航错误
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load page:', errorCode, errorDescription)
   })
 }
 
@@ -42,9 +64,6 @@ function createWindow() {
 app.whenReady().then(createWindow)
 
 // --- 在这里添加新的IPC监听器 ---
-
-// 1. 引入 Notification 模块，用于显示通知
-const { ipcMain, Notification } = require('electron') // 您可以把它合并到文件顶部的require里
 
 /**
  * 监听单向通信：处理 'show-notification' 频道
@@ -69,3 +88,24 @@ ipcMain.handle('get-app-version', () => {
   return version
 })
 // ---------------------------------
+
+// --- 在文件末尾新增这三个监听器 ---
+ipcMain.on('window-minimize', (event) => {
+  // 通过 event.sender 获取到发送该消息的窗口
+  const win = BrowserWindow.fromWebContents(event.sender)
+  win.minimize()
+})
+
+ipcMain.on('window-maximize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (win.isMaximized()) {
+    win.unmaximize() // 如果已经是最大化，就恢复
+  } else {
+    win.maximize() // 否则就最大化
+  }
+})
+
+ipcMain.on('window-close', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  win.close()
+})

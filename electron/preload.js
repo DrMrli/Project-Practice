@@ -24,5 +24,11 @@ contextBridge.exposeInMainWorld('myAPI', {
     // 使用 'get-app-version' 这个频道名
     // invoke 会等待主进程的 handle 回复
     return ipcRenderer.invoke('get-app-version')
-  }
+  },
+
+    // --- 新增这三个方法 (都是单向通信，因为不需要回复) ---
+  minimizeWindow: () => ipcRenderer.send('window-minimize'),
+  maximizeWindow: () => ipcRenderer.send('window-maximize'),
+  closeWindow: () => ipcRenderer.send('window-close'),
+  // --------------------------------------------------------
 })

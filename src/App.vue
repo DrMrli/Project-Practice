@@ -27,9 +27,34 @@ async function handleGetVersion() {
   }
   console.log('handleGetVersion 函数执行完成')
 }
+
+// --- 新增这三个方法 ---
+function minimize() {
+  window.myAPI.minimizeWindow()
+}
+
+function maximize() {
+  window.myAPI.maximizeWindow()
+}
+
+function close() {
+  window.myAPI.closeWindow()
+}
 </script>
 
+
 <template>
+  <!-- --- 新增或修改为这个结构 --- -->
+  <div class="title-bar">
+    <div class="title">IntelliView Browser</div>
+    <div class="controls">
+      <!-- 这里先放三个占位的色块 -->
+      <div class="control-btn minimize" @click="minimize"></div>
+      <div class="control-btn maximize" @click="maximize"></div>
+      <div class="control-btn close" @click="close"></div>
+    </div>
+  </div>
+
   <div class="card-container">
     <!-- 案例一：单向通信 -->
     <div class="action-card">
@@ -96,4 +121,48 @@ button {
 button:hover {
   background-color: #1d4ed8;
 }
+
+/* electron/main.js */
+.title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 32px; /* 标题栏高度 */
+  background-color: #2d333b; /* 深色背景 */
+  color: #adbac7;
+  padding: 0 10px;
+  position: fixed; /* 固定在顶部 */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+
+  /* --- 核心中的核心！告诉Electron这是可拖拽区域 --- */
+  -webkit-app-region: drag;
+}
+
+.title {
+  font-weight: bold;
+}
+
+.controls {
+  display: flex;
+}
+
+.control-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: 8px;
+
+  /* --- 核心中的核心！把按钮区域标记为“不可拖拽” --- */
+  /* 否则按钮将无法被点击 */
+  -webkit-app-region: no-drag;
+}
+
+.minimize { background-color: #f8c555; }
+.maximize { background-color: #62c454; }
+.close { background-color: #ec695e; }
+
+
 </style>
