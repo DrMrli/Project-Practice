@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import TitleBar from './components/TitleBar.vue'
 
 // 用于显示版本号的变量
 const appVersion = ref('点击下方按钮查询')
@@ -27,33 +28,12 @@ async function handleGetVersion() {
   }
   console.log('handleGetVersion 函数执行完成')
 }
-
-// --- 新增这三个方法 ---
-function minimize() {
-  window.myAPI.minimizeWindow()
-}
-
-function maximize() {
-  window.myAPI.maximizeWindow()
-}
-
-function close() {
-  window.myAPI.closeWindow()
-}
 </script>
 
 
 <template>
-  <!-- --- 新增或修改为这个结构 --- -->
-  <div class="title-bar">
-    <div class="title">IntelliView Browser</div>
-    <div class="controls">
-      <!-- 这里先放三个占位的色块 -->
-      <div class="control-btn minimize" @click="minimize"></div>
-      <div class="control-btn maximize" @click="maximize"></div>
-      <div class="control-btn close" @click="close"></div>
-    </div>
-  </div>
+  <!-- 引入TitleBar组件 -->
+  <TitleBar />
 
   <div class="card-container">
     <!-- 案例一：单向通信 -->
@@ -73,6 +53,27 @@ function close() {
   </div>
 </template>
 
+<style>
+/* 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  height: 100%;
+  width: 100%;
+  background-color: #f5f5f5;
+  font-family: sans-serif;
+}
+
+#app {
+  height: 100%;
+  width: 100%;
+}
+</style>
+
 <style scoped>
 .card-container {
   display: flex;
@@ -81,15 +82,20 @@ function close() {
   gap: 2rem;
   padding: 2rem;
   font-family: sans-serif;
+  margin-top: 40px; /* 为TitleBar留出空间 */
+  min-height: calc(100vh - 40px); /* 填满剩余高度 */
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .action-card {
-  width: 80%;
-  max-width: 500px;
+  width: 90%;
+  max-width: 600px;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
+  background-color: white;
 }
 
 .action-card h2 {
@@ -121,48 +127,6 @@ button {
 button:hover {
   background-color: #1d4ed8;
 }
-
-/* electron/main.js */
-.title-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 32px; /* 标题栏高度 */
-  background-color: #2d333b; /* 深色背景 */
-  color: #adbac7;
-  padding: 0 10px;
-  position: fixed; /* 固定在顶部 */
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-
-  /* --- 核心中的核心！告诉Electron这是可拖拽区域 --- */
-  -webkit-app-region: drag;
-}
-
-.title {
-  font-weight: bold;
-}
-
-.controls {
-  display: flex;
-}
-
-.control-btn {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-left: 8px;
-
-  /* --- 核心中的核心！把按钮区域标记为“不可拖拽” --- */
-  /* 否则按钮将无法被点击 */
-  -webkit-app-region: no-drag;
-}
-
-.minimize { background-color: #f8c555; }
-.maximize { background-color: #62c454; }
-.close { background-color: #ec695e; }
 
 
 </style>
