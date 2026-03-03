@@ -7,7 +7,7 @@
     </div>
 
     <!-- 中间自适应区域 -->
-    <div class="titlebar-center">
+    <div class="titlebar-center" @dblclick="maximize">
       <!-- 这里是可拖拽区域，现在是空的 -->
     </div>
 
@@ -18,8 +18,9 @@
         <svg viewBox="0 0 24 24" width="16" height="16"><path d="M20 11H4v2h16z"/></svg>
       </div>
       <div class="win-control" @click="maximize">
-        <!-- 最大化图标 -->
-        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 4h16v16H4z"/></svg>
+        <!-- 根据窗口状态显示不同的图标 -->
+        <svg v-if="!isMaximized" viewBox="0 0 24 24" width="16" height="16"><path d="M4 4h16v16H4z"/></svg>
+        <svg v-else viewBox="0 0 24 24" width="16" height="16"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
       </div>
       <div class="win-control close" @click="close">
         <!-- 关闭图标 -->
@@ -30,10 +31,33 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+
 // 窗口控制逻辑
-const minimize = () => window.myAPI.minimizeWindow()
-const maximize = () => window.myAPI.maximizeWindow()
-const close = () => window.myAPI.closeWindow()
+const minimize = () => {
+  // 调用我们在 preload.js 中暴露的 windowControls.minimize 方法
+  window.windowControls.minimize()
+}
+
+const maximize = () => {
+  window.windowControls.maximize()
+}
+
+const close = () => {
+  window.windowControls.close()
+}
+
+// 窗口最大化状态
+const isMaximized = ref(false)
+
+// 组件挂载时注册窗口状态变化监听器
+onMounted(() => {
+  // 注册监听器，接收来自主进程的窗口状态消息
+  window.windowControls.onWindowMaximized((maximized) => {
+    console.log('Window maximized status changed:', maximized)
+    isMaximized.value = maximized
+  })
+})
 </script>
 
 <style scoped>
@@ -59,6 +83,10 @@ const close = () => window.myAPI.closeWindow()
   left: 0;
   right: 0;
   z-index: 9999;
+  
+  /* --- 新增这行代码 --- */
+  /* 将整个标题栏标记为可拖动区域 */
+  -webkit-app-region: drag;
 }
 
 .titlebar-left,
@@ -68,8 +96,13 @@ const close = () => window.myAPI.closeWindow()
   align-items: center;
   gap: 8px; /* 元素之间的间距 */
   
-  /* 将左右两个区域明确标记为不可拖拽，以保证内部的按钮可以被点击 */
+  /* 为可交互元素“开一个洞”，确保按钮可以被点击 */
   -webkit-app-region: no-drag;
+}
+
+.titlebar-left {
+  /* 为左侧的Logo和标题区域，恢复默认光标 */
+  cursor: default;
 }
 
 .titlebar-center {
@@ -78,9 +111,9 @@ const close = () => window.myAPI.closeWindow()
   
   height: 100%; /* 高度撑满 */
   margin: 0 8px; /* 左右边距 */
-
-  /* 指定拖拽区域 */
-  -webkit-app-region: drag;
+  
+  /* 为可拖拽的中间区域，设置“移动”光标 */
+  cursor: move; /* 或者 'grab' */
 }
 
 .logo {
@@ -99,7 +132,7 @@ const close = () => window.myAPI.closeWindow()
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: pointer; /* 为按钮设置“小手”光标 */
   transition: background-color 0.2s;
 }
 

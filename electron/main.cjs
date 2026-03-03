@@ -38,8 +38,8 @@ function createWindow() {
   })
 
   // 让这个窗口去加载我们Vite项目的网页地址
-  console.log('Loading URL: http://localhost:5174')
-  mainWindow.loadURL('http://localhost:5174')
+  console.log('Loading URL: http://localhost:5173')
+  mainWindow.loadURL('http://localhost:5173')
   
   // 关闭开发者工具，正常显示应用
   // mainWindow.webContents.openDevTools()
@@ -57,6 +57,26 @@ function createWindow() {
   // 监听导航错误
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
     console.error('Failed to load page:', errorCode, errorDescription)
+  })
+  
+  // 监听窗口最大化事件
+  mainWindow.on('maximize', () => {
+    console.log('Window maximized')
+    // 通知渲染进程窗口已最大化
+    mainWindow.webContents.send('window-maximized', true)
+  })
+  
+  // 监听窗口还原事件
+  mainWindow.on('unmaximize', () => {
+    console.log('Window unmaximized')
+    // 通知渲染进程窗口已还原
+    mainWindow.webContents.send('window-maximized', false)
+  })
+  
+  // 初始化时发送当前窗口状态
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Page loaded, sending initial window state')
+    mainWindow.webContents.send('window-maximized', mainWindow.isMaximized())
   })
 }
 

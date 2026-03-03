@@ -24,11 +24,26 @@ contextBridge.exposeInMainWorld('myAPI', {
     // 使用 'get-app-version' 这个频道名
     // invoke 会等待主进程的 handle 回复
     return ipcRenderer.invoke('get-app-version')
-  },
+  }
+})
 
-    // --- 新增这三个方法 (都是单向通信，因为不需要回复) ---
-  minimizeWindow: () => ipcRenderer.send('window-minimize'),
-  maximizeWindow: () => ipcRenderer.send('window-maximize'),
-  closeWindow: () => ipcRenderer.send('window-close'),
-  // --------------------------------------------------------
+// 创建一个新的命名空间叫 windowControls，专门用来放窗口控制相关的API
+contextBridge.exposeInMainWorld('windowControls', {
+  // 定义一个名为'minimize'的API
+  // 当Vue调用它时，它会通过'window-minimize'频道发送一个单向消息
+  minimize: () => ipcRenderer.send('window-minimize'),
+  
+  // 定义'maximize' API
+  maximize: () => ipcRenderer.send('window-maximize'),
+  
+  // 定义'close' API
+  close: () => ipcRenderer.send('window-close'),
+  
+  // 监听窗口状态变化
+  onWindowMaximized: (callback) => {
+    // 接收来自主进程的窗口最大化状态消息
+    ipcRenderer.on('window-maximized', (event, isMaximized) => {
+      callback(isMaximized)
+    })
+  }
 })
