@@ -32,103 +32,46 @@ async function handleGetVersion() {
 
 
 <template>
-  <!-- 引入TitleBar组件 -->
-  <TitleBar />
-
-  <!-- 隐藏卡片容器，只显示标题栏 -->
-  <div class="card-container" style="display: none;">
-    <!-- 案例一：单向通信 -->
-    <div class="action-card">
-      <h2>案例一：单向通信 (send / on)</h2>
-      <p>点击按钮，主进程会弹出一个系统通知。</p>
-      <button @click="handleShowNotification">显示系统通知</button>
-    </div>
-
-    <!-- 案例二：双向通信 -->
-    <div class="action-card">
-      <h2>案例二：双向通信 (invoke / handle)</h2>
-      <p>点击按钮，从主进程获取应用版本号并显示。</p>
-      <p class="version-display">{{ appVersion }}</p>
-      <button @click="handleGetVersion">查询应用版本</button>
+  <!-- 新增一个包裹容器 -->
+  <div class="main-container">
+    <TitleBar />
+    <!-- 你未来的其他内容都放在这里 -->
+    <div class="content-area">
+      <!-- BrowserView 将会覆盖在这片区域 -->
     </div>
   </div>
 </template>
 
 <style>
-/* 全局样式 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* 注意：这里需要一个全局样式，而不是 scoped */
+  /* 1. 让根元素透明 */
+  html, body, #app {
+    background-color: transparent;
+  }
 
-body, html {
-  height: 100%;
-  width: 100%;
-  background-color: #f5f5f5;
-  font-family: sans-serif;
-}
-
-#app {
-  height: 100%;
-  width: 100%;
-  background-color: transparent;
-}
+  /* 2. 在最外层留出空间，给阴影显示 */
+  #app {
+    padding: 12px; /* 这个值约等于阴影的模糊半径 */
+    height: 100vh;
+    box-sizing: border-box;
+  }
 </style>
 
 <style scoped>
-.card-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  padding: 2rem;
-  font-family: sans-serif;
-  margin-top: 40px; /* 为TitleBar留出空间 */
-  min-height: calc(100vh - 40px); /* 填满剩余高度 */
-  box-sizing: border-box;
-  width: 100%;
-}
+  .main-container {
+    width: 100%;
+    height: 100%;
+    background-color: #282c34; /* 窗口的主背景色 */
+    border-radius: 8px; /* 窗口的圆角 */
+    overflow: hidden; /* 隐藏子元素溢出的部分 */
+    display: flex;
+    flex-direction: column;
 
-.action-card {
-  width: 90%;
-  max-width: 600px;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  background-color: white;
-}
+    /* 3. 关键！应用 drop-shadow 滤镜 */
+    filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.5));
+  }
 
-.action-card h2 {
-  margin-top: 0;
-  color: #1e40af;
-}
-
-.action-card p {
-  color: #374151;
-  min-height: 1.5em; /* 保证高度，防止按钮跳动 */
-}
-
-.version-display {
-  font-weight: bold;
-  color: #166534;
-}
-
-button {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-}
-
-button:hover {
-  background-color: #1d4ed8;
-}
-
-
+  .content-area {
+    flex-grow: 1; /* 填充剩余空间 */
+  }
 </style>
