@@ -35,7 +35,8 @@ async function handleGetVersion() {
   <!-- 引入TitleBar组件 -->
   <TitleBar />
 
-  <div class="card-container">
+  <!-- 隐藏卡片容器，只显示标题栏 -->
+  <div class="card-container" style="display: none;">
     <!-- 案例一：单向通信 -->
     <div class="action-card">
       <h2>案例一：单向通信 (send / on)</h2>
@@ -71,6 +72,7 @@ body, html {
 #app {
   height: 100%;
   width: 100%;
+  background-color: transparent;
 }
 </style>
 

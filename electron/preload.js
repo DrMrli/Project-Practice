@@ -47,3 +47,9 @@ contextBridge.exposeInMainWorld('windowControls', {
     })
   }
 })
+
+// 创建一个新的命名空间叫 browser，专门用来放浏览器相关的API
+contextBridge.exposeInMainWorld('browser', {
+  // 使用invoke，因为未来我们可能需要主进程返回加载状态（成功/失败）
+  loadURL: (url) => ipcRenderer.invoke('browser-load-url', url)
+})

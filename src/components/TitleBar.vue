@@ -8,7 +8,12 @@
 
     <!-- 中间自适应区域 -->
     <div class="titlebar-center" @dblclick="maximize">
-      <!-- 这里是可拖拽区域，现在是空的 -->
+      <input
+        type="text"
+        class="address-bar"
+        placeholder="输入网址或搜索内容"
+        @keydown.enter="handleUrlInput"
+      />
     </div>
 
     <!-- 右侧控制区域 -->
@@ -58,6 +63,16 @@ onMounted(() => {
     isMaximized.value = maximized
   })
 })
+
+// 处理地址栏输入
+const handleUrlInput = (event) => {
+  // event.target.value 就是输入框里当前的文本
+  const url = event.target.value
+  if (url) {
+    // 调用我们刚刚在preload中定义的API
+    window.browser.loadURL(url)
+  }
+}
 </script>
 
 <style scoped>
@@ -111,6 +126,8 @@ onMounted(() => {
   
   height: 100%; /* 高度撑满 */
   margin: 0 8px; /* 左右边距 */
+  display: flex;
+  align-items: center; /* 垂直居中 */
   
   /* 为可拖拽的中间区域，设置“移动”光标 */
   cursor: move; /* 或者 'grab' */
@@ -156,5 +173,20 @@ onMounted(() => {
 
 .win-control.close:hover svg {
   fill: white;
+}
+
+.address-bar {
+  width: 100%;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  padding: 0 16px;
+  background-color: #1e1e1e; /* 调整为适合深色主题的背景 */
+  color: white;
+  font-size: 14px;
+  -webkit-app-region: no-drag; /* 关键！让输入框可以被点击和输入 */
+}
+.address-bar:focus {
+  outline: 1px solid #0ea5e9; /* 聚焦时给个高亮 */
 }
 </style>

@@ -8,6 +8,7 @@ console.log('Current directory:', __dirname)
 // 全局变量
 let tray = null
 let mainWindow = null
+let browserView = null
 
 // 预加载脚本路径
 const preloadPath = path.join(__dirname, 'preload.js') 
@@ -54,6 +55,14 @@ function createWindow() {
   console.log('Loading URL: http://localhost:5173')
   mainWindow.loadURL('http://localhost:5173')
   
+  // 隐藏主窗口的webContents，只显示BrowserView
+  mainWindow.webContents.on('did-finish-load', () => {
+    // 主窗口加载完成后，确保BrowserView可见
+    if (browserView) {
+      mainWindow.setBrowserView(browserView)
+    }
+  })
+  
   // 关闭开发者工具，正常显示应用
   // mainWindow.webContents.openDevTools()
   
@@ -91,6 +100,43 @@ function createWindow() {
     console.log('Page loaded, sending initial window state')
     mainWindow.webContents.send('window-maximized', mainWindow.isMaximized())
   })
+  
+  // 初始化BrowserView用于加载外部网页
+  const { BrowserView } = require('electron')
+  browserView = new BrowserView({
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  })
+  
+  // 将BrowserView添加到窗口
+  mainWindow.addBrowserView(browserView)
+  
+  // 设置BrowserView的位置和大小（位于标题栏下方）
+  const titleBarHeight = 40 // 标题栏高度
+  const { width, height } = mainWindow.getBounds()
+  browserView.setBounds({
+    x: 0,
+    y: titleBarHeight,
+    width: width,
+    height: height - titleBarHeight
+  })
+  
+  // 监听窗口大小变化，调整BrowserView大小
+  mainWindow.on('resize', () => {
+    const { width, height } = mainWindow.getBounds()
+    browserView.setBounds({
+      x: 0,
+      y: titleBarHeight,
+      width: width,
+      height: height - titleBarHeight
+    })
+  })
+  
+  // 初始加载一个默认页面
+  browserView.webContents.loadURL('https://www.baidu.com')
+  console.log('BrowserView initialized and loaded Baidu')
 }
 
 // 当Electron平台准备就绪后，就执行创建窗口的指令
@@ -209,4 +255,61 @@ ipcMain.on('window-maximize', (event) => {
 ipcMain.on('window-close', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender)
   win.close()
+})
+
+// 智能翻译官：URL规范化函数
+function normalizeURL(url) {
+  if (!url) return null
+
+  // 如果已经是完整的URL，直接返回
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+
+  // 如果像域名（但不包含协议），自动补全 https://
+  if (url.includes('.') && !url.includes(' ')) {
+    return `https://${url}`
+  }
+
+  // 否则，当作搜索引擎的关键词进行搜索
+  // 使用 encodeURIComponent 来处理中文或特殊字符
+  return `https://www.bing.com/search?q=${encodeURIComponent(url)}`
+}
+
+// 定义安全的协议白名单
+const SAFE_PROTOCOLS = ['https:', 'http:']
+
+// 监听浏览器导航请求
+ipcMain.handle('browser-load-url', (event, url) => {
+  console.log('Received URL:', url)
+  const normalizedUrl = normalizeURL(url)
+  
+  if (!normalizedUrl) {
+    console.error('Invalid URL:', url)
+    return { success: false, error: 'Invalid URL' }
+  }
+
+  try {
+    const urlObject = new URL(normalizedUrl)
+
+    // --- 开始安检 ---
+    if (!SAFE_PROTOCOLS.includes(urlObject.protocol)) {
+      console.error(`拦截到不安全的协议: ${urlObject.protocol}`)
+      return { success: false, error: `Unsafe protocol: ${urlObject.protocol}` }
+    }
+    // --- 安检结束 ---
+
+    // 使用browserView加载URL，保留标题栏
+    if (browserView) {
+      browserView.webContents.loadURL(normalizedUrl)
+      console.log('Loading normalized URL in BrowserView:', normalizedUrl)
+      return { success: true, url: normalizedUrl }
+    } else {
+      console.error('BrowserView not initialized')
+      return { success: false, error: 'BrowserView not initialized' }
+    }
+  } catch (error) {
+    console.error('Invalid URL:', normalizedUrl, error)
+    return { success: false, error: error.message }
+  }
 })
