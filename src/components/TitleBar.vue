@@ -93,6 +93,10 @@ const handleUrlInput = (event) => {
   color: #e2e8f0;
   padding: 0 8px; /* 左右留出一点边距 */
   user-select: none; /* 禁止文本被选中，提升拖拽体验 */
+  width: 100%; /* 确保标题栏宽度为100% */
+  box-sizing: border-box; /* 确保padding不会影响宽度 */
+  position: relative; /* 确保标题栏在最上层 */
+  z-index: 1000; /* 确保标题栏在最上层 */
   
   /* --- 新增这行代码 --- */
   /* 将整个标题栏标记为可拖动区域 */
@@ -171,7 +175,8 @@ const handleUrlInput = (event) => {
 }
 
 .address-bar {
-  width: 100%;
+  flex: 1;
+  max-width: 600px;
   height: 28px;
   border-radius: 14px;
   border: none;

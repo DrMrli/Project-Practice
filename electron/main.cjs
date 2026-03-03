@@ -9,6 +9,8 @@ console.log('Current directory:', __dirname)
 let tray = null
 let mainWindow = null
 let browserView = null
+let isWindowMaximized = false // 用于跟踪窗口最大化状态
+let normalWindowBounds = null // 用于保存窗口正常状态的大小和位置
 
 // 预加载脚本路径
 const preloadPath = path.join(__dirname, 'preload.js') 
@@ -36,6 +38,10 @@ function createWindow() {
       // ------------------------------------
     }
   })
+
+  // 保存初始窗口状态
+  normalWindowBounds = mainWindow.getBounds()
+  console.log('Initial window bounds:', normalWindowBounds)
 
   // 监听窗口事件
   mainWindow.on('closed', () => {
@@ -86,24 +92,11 @@ function createWindow() {
     console.error('Failed to load page:', errorCode, errorDescription)
   })
   
-  // 监听窗口最大化事件
-  mainWindow.on('maximize', () => {
-    console.log('Window maximized')
-    // 通知渲染进程窗口已最大化
-    mainWindow.webContents.send('window-maximized', true)
-  })
-  
-  // 监听窗口还原事件
-  mainWindow.on('unmaximize', () => {
-    console.log('Window unmaximized')
-    // 通知渲染进程窗口已还原
-    mainWindow.webContents.send('window-maximized', false)
-  })
-  
   // 初始化时发送当前窗口状态
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('Page loaded, sending initial window state')
-    mainWindow.webContents.send('window-maximized', mainWindow.isMaximized())
+    isWindowMaximized = mainWindow.isMaximized()
+    mainWindow.webContents.send('window-maximized', isWindowMaximized)
   })
   
   // 初始化BrowserView用于加载外部网页
@@ -118,25 +111,24 @@ function createWindow() {
   // 将BrowserView添加到窗口
   mainWindow.addBrowserView(browserView)
   
-  // 设置BrowserView的位置和大小（位于标题栏下方，且有边距）
+  // 设置BrowserView的位置和大小（位于标题栏下方）
   const titleBarHeight = 40 // 标题栏高度
-  const padding = 1 // 与#app的padding一致
   const { width, height } = mainWindow.getBounds()
   browserView.setBounds({
-    x: padding,
-    y: padding + titleBarHeight,
-    width: width - padding * 2,
-    height: height - padding * 2 - titleBarHeight
+    x: 0,
+    y: titleBarHeight,
+    width: width,
+    height: height - titleBarHeight
   })
   
   // 监听窗口大小变化，调整BrowserView大小
   mainWindow.on('resize', () => {
     const { width, height } = mainWindow.getBounds()
     browserView.setBounds({
-      x: padding,
-      y: padding + titleBarHeight,
-      width: width - padding * 2,
-      height: height - padding * 2 - titleBarHeight
+      x: 0,
+      y: titleBarHeight,
+      width: width,
+      height: height - titleBarHeight
     })
   })
   
@@ -251,11 +243,33 @@ ipcMain.on('window-minimize', (event) => {
 
 ipcMain.on('window-maximize', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender)
-  if (win.isMaximized()) {
-    win.unmaximize() // 如果已经是最大化，就恢复
+  console.log('Window maximize requested, current state:', isWindowMaximized)
+  if (isWindowMaximized) {
+    console.log('Restoring window to normal size')
+    console.log('Normal window bounds:', normalWindowBounds)
+    // 使用setBounds()手动设置窗口大小
+    win.setBounds(normalWindowBounds)
+    isWindowMaximized = false
   } else {
-    win.maximize() // 否则就最大化
+    console.log('Maximizing window')
+    // 保存当前窗口状态，以便恢复
+    normalWindowBounds = win.getBounds()
+    console.log('Saved normal window bounds:', normalWindowBounds)
+    win.maximize() // 最大化窗口
+    isWindowMaximized = true
   }
+  // 无论哪种情况，都通知渲染进程窗口状态
+  setTimeout(() => {
+    win.webContents.send('window-maximized', isWindowMaximized)
+    // 调整BrowserView大小
+    const { width, height } = win.getBounds()
+    browserView.setBounds({
+      x: 0,
+      y: 40,
+      width: width,
+      height: height - 40
+    })
+  }, 100) // 延迟一下，确保状态已经更新
 })
 
 ipcMain.on('window-close', (event) => {

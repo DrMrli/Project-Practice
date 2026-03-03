@@ -55,16 +55,21 @@ html, body, #app {
 /* 2. 在最外层留出空间，给阴影显示 */
 #app {
   padding: 1px; /* 这个值约等于阴影的模糊半径 */
-  height: 100vh;
+  height: 100%;
   box-sizing: border-box;
   width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 </style>
 
 <style scoped>
 .main-container {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background-color: #282c34; /* 窗口的主背景色 */
   border-radius: 8px; /* 窗口的圆角 */
   overflow: hidden; /* 隐藏子元素溢出的部分 */
