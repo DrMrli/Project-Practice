@@ -21,6 +21,10 @@ function createWindow() {
     height: 600,
     frame: false, // 隐藏默认窗口边框和标题栏
     transparent: true, // 这是实现自定义阴影的前提
+    // --- macOS 特有的毛玻璃效果配置 ---
+    vibrancy: 'under-window', // 开启毛玻璃效果
+    visualEffectState: 'active', // 让效果更明显
+    // ------------------------------------
     webPreferences: {
       // --- 这是我们要修改的核心部分 ---
       // 1. 重新开启上下文隔离，这是安全的基石！
