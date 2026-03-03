@@ -93,7 +93,6 @@ const handleUrlInput = (event) => {
   color: #e2e8f0;
   padding: 0 8px; /* 左右留出一点边距 */
   user-select: none; /* 禁止文本被选中，提升拖拽体验 */
-  width: 100%; /* 确保标题栏宽度为100% */
   
   /* --- 新增这行代码 --- */
   /* 将整个标题栏标记为可拖动区域 */
