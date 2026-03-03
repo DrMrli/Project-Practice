@@ -20,6 +20,7 @@ function createWindow() {
     width: 800,
     height: 600,
     frame: false, // 隐藏默认窗口边框和标题栏
+    transparent: true, // 这是实现自定义阴影的前提
     webPreferences: {
       // --- 这是我们要修改的核心部分 ---
       // 1. 重新开启上下文隔离，这是安全的基石！
@@ -113,24 +114,25 @@ function createWindow() {
   // 将BrowserView添加到窗口
   mainWindow.addBrowserView(browserView)
   
-  // 设置BrowserView的位置和大小（位于标题栏下方）
+  // 设置BrowserView的位置和大小（位于标题栏下方，且有边距）
   const titleBarHeight = 40 // 标题栏高度
+  const padding = 1 // 与#app的padding一致
   const { width, height } = mainWindow.getBounds()
   browserView.setBounds({
-    x: 0,
-    y: titleBarHeight,
-    width: width,
-    height: height - titleBarHeight
+    x: padding,
+    y: padding + titleBarHeight,
+    width: width - padding * 2,
+    height: height - padding * 2 - titleBarHeight
   })
   
   // 监听窗口大小变化，调整BrowserView大小
   mainWindow.on('resize', () => {
     const { width, height } = mainWindow.getBounds()
     browserView.setBounds({
-      x: 0,
-      y: titleBarHeight,
-      width: width,
-      height: height - titleBarHeight
+      x: padding,
+      y: padding + titleBarHeight,
+      width: width - padding * 2,
+      height: height - padding * 2 - titleBarHeight
     })
   })
   
