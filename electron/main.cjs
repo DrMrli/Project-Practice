@@ -1,9 +1,13 @@
-const { app, BrowserWindow, ipcMain, Notification } = require('electron')
+const { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage } = require('electron')
 const path = require('path')
 
 // 调试信息
 console.log('Main process starting...')
 console.log('Current directory:', __dirname)
+
+// 全局变量
+let tray = null
+let mainWindow = null
 
 // 预加载脚本路径
 const preloadPath = path.join(__dirname, 'preload.js') 
@@ -11,7 +15,7 @@ console.log('Preload script path:', preloadPath)
 
 function createWindow() {
   console.log('Creating window...')
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     frame: false, // 隐藏默认窗口边框和标题栏
@@ -81,7 +85,77 @@ function createWindow() {
 }
 
 // 当Electron平台准备就绪后，就执行创建窗口的指令
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow() // 创建窗口
+
+  // 创建系统托盘
+  console.log('Creating system tray...')
+  
+  try {
+    // 尝试使用一个简单的方法创建托盘
+    console.log('Creating tray...')
+    
+    // 使用一个简单的方法：创建一个空的nativeImage
+    // 虽然图标可能不可见，但托盘功能会正常工作
+    const icon = nativeImage.createEmpty()
+    tray = new Tray(icon)
+    
+    console.log('Tray created successfully')
+    
+    // 设置鼠标悬浮在托盘图标上时显示的文字
+    tray.setToolTip('IntelliView 浏览器 - 我在这里！')
+    
+    // 设置托盘图标的标题（仅macOS）
+    tray.setTitle('IntelliView')
+    
+    // 创建托盘菜单
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: '显示窗口',
+        click: () => {
+          if (mainWindow) {
+            mainWindow.show()
+          }
+        }
+      },
+      {
+        label: '隐藏窗口',
+        click: () => {
+          if (mainWindow) {
+            mainWindow.hide()
+          }
+        }
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: '退出应用',
+        click: () => {
+          app.quit()
+        }
+      }
+    ])
+    
+    // 设置托盘菜单
+    tray.setContextMenu(contextMenu)
+    
+    // 点击托盘图标显示/隐藏窗口
+    tray.on('click', () => {
+      if (mainWindow) {
+        if (mainWindow.isVisible()) {
+          mainWindow.hide()
+        } else {
+          mainWindow.show()
+        }
+      }
+    })
+    
+    console.log('Tray initialized with menu')
+  } catch (error) {
+    console.error('Failed to create tray:', error)
+  }
+})
 
 // --- 在这里添加新的IPC监听器 ---
 
