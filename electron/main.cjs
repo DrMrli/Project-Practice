@@ -35,6 +35,15 @@ function createWindow() {
   mainWindow.on('closed', () => {
     console.log('Window closed')
   })
+  
+  // 监听窗口关闭事件，改为隐藏窗口而不是退出应用
+  mainWindow.on('close', (event) => {
+    // 阻止默认的关闭行为
+    event.preventDefault()
+    // 隐藏窗口
+    mainWindow.hide()
+    console.log('Window hidden instead of closed')
+  })
 
   mainWindow.on('ready-to-show', () => {
     console.log('Window ready to show')
@@ -92,15 +101,15 @@ app.whenReady().then(() => {
   console.log('Creating system tray...')
   
   try {
-    // 尝试使用一个简单的方法创建托盘
-    console.log('Creating tray...')
+    // 使用PNG格式的图标创建托盘
+    console.log('Creating tray with PNG icon...')
     
-    // 使用一个简单的方法：创建一个空的nativeImage
-    // 虽然图标可能不可见，但托盘功能会正常工作
-    const icon = nativeImage.createEmpty()
-    tray = new Tray(icon)
+    // 图标路径：__dirname是electron目录，../回到根目录，再进入resources
+    const iconPath = path.join(__dirname, '../resources/icon.png')
+    console.log('Tray icon path:', iconPath)
     
-    console.log('Tray created successfully')
+    tray = new Tray(iconPath)
+    console.log('Tray created successfully with PNG icon')
     
     // 设置鼠标悬浮在托盘图标上时显示的文字
     tray.setToolTip('IntelliView 浏览器 - 我在这里！')
@@ -111,27 +120,25 @@ app.whenReady().then(() => {
     // 创建托盘菜单
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: '显示窗口',
+        label: '显示/隐藏',
         click: () => {
-          if (mainWindow) {
-            mainWindow.show()
-          }
+          // 点击后，切换窗口的显示和隐藏
+          mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()
         }
       },
       {
-        label: '隐藏窗口',
+        type: 'separator' // 这是一条分割线
+      },
+      {
+        label: '退出',
         click: () => {
+          // 确保应用能够真正退出
+          console.log('Exiting application...')
+          // 先销毁窗口
           if (mainWindow) {
-            mainWindow.hide()
+            mainWindow.destroy()
           }
-        }
-      },
-      {
-        type: 'separator'
-      },
-      {
-        label: '退出应用',
-        click: () => {
+          // 然后退出应用
           app.quit()
         }
       }
