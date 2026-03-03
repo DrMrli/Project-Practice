@@ -116,22 +116,23 @@ function createWindow() {
   
   // 设置BrowserView的位置和大小（位于标题栏下方）
   const titleBarHeight = 40 // 标题栏高度
+  const padding = 12 // 窗口padding
   const { width, height } = mainWindow.getBounds()
   browserView.setBounds({
-    x: 0,
-    y: titleBarHeight,
-    width: width,
-    height: height - titleBarHeight
+    x: padding,
+    y: padding + titleBarHeight,
+    width: width - padding * 2,
+    height: height - padding * 2 - titleBarHeight
   })
   
   // 监听窗口大小变化，调整BrowserView大小
   mainWindow.on('resize', () => {
     const { width, height } = mainWindow.getBounds()
     browserView.setBounds({
-      x: 0,
-      y: titleBarHeight,
-      width: width,
-      height: height - titleBarHeight
+      x: padding,
+      y: padding + titleBarHeight,
+      width: width - padding * 2,
+      height: height - padding * 2 - titleBarHeight
     })
   })
   
