@@ -145,6 +145,20 @@ console.log('BrowserView initialized and loaded Bing')
 setupViewEventListeners(browserView, mainWindow)
 }
 
+// 最好封装一个函数来获取当前激活的BrowserView
+const getActiveView = () => browserView
+
+// 最好把发送状态的逻辑也封装成函数
+function sendNavigationState(view, win) {
+  if (win && !win.isDestroyed() && view && !view.webContents.isDestroyed()) {
+    const navState = {
+      canGoBack: view.webContents.navigationHistory.canGoBack(),
+      canGoForward: view.webContents.navigationHistory.canGoForward()
+    }
+    win.webContents.send('nav-state-change', navState)
+  }
+}
+
 // 建议把这部分逻辑封装，而不是直接写在createWindow里
 function setupViewEventListeners(view, win) {
   // 1. 监听"开始加载"事件
@@ -159,6 +173,18 @@ function setupViewEventListeners(view, win) {
   view.webContents.on('did-stop-loading', () => {
     // 发送 false 表示"加载已停止"
     win.webContents.send('loading-state-change', false)
+    // 别忘了在 loading 状态变化时也更新一下导航状态
+    sendNavigationState(view, win)
+  })
+
+  // 当页面导航完成时（包括前进/后退/加载新页面）
+  view.webContents.on('did-navigate', () => {
+    sendNavigationState(view, win)
+  })
+
+  // 当页面内的哈希值变化时 (对于SPA应用很重要)
+  view.webContents.on('did-navigate-in-page', () => {
+    sendNavigationState(view, win)
   })
 }
 
@@ -372,3 +398,9 @@ ipcMain.on('browser-reload', (event) => {
     console.log('BrowserView reloaded')
   }
 })
+
+// 导航相关的IPC监听器
+ipcMain.on('nav-go-back', () => getActiveView()?.webContents.goBack())
+ipcMain.on('nav-go-forward', () => getActiveView()?.webContents.goForward())
+ipcMain.on('nav-reload', () => getActiveView()?.webContents.reload())
+ipcMain.on('nav-stop', () => getActiveView()?.webContents.stop())

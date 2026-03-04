@@ -69,3 +69,20 @@ contextBridge.exposeInMainWorld('browser', {
     })
   }
 })
+
+// 创建一个新的命名空间叫 navigation，专门用来放导航相关的API
+contextBridge.exposeInMainWorld('navigation', {
+  // 定义四个单向通信API，用于发送导航指令
+  goBack: () => ipcRenderer.send('nav-go-back'),
+  goForward: () => ipcRenderer.send('nav-go-forward'),
+  reload: () => ipcRenderer.send('nav-reload'),
+  stop: () => ipcRenderer.send('nav-stop'),
+
+  // 定义一个用于接收“状态更新”的API
+  onNavigateStateChange: (callback) => {
+    ipcRenderer.on('nav-state-change', (event, navState) => {
+      // navState 将是一个对象，如 { canGoBack: true, canGoForward: false }
+      callback(navState)
+    })
+  }
+})
