@@ -138,8 +138,28 @@ function createWindow() {
   })
   
   // 7. 让 BrowserView 加载一个外部网页
-  browserView.webContents.loadURL('https://cn.bing.com')
-  console.log('BrowserView initialized and loaded Bing')
+browserView.webContents.loadURL('https://cn.bing.com')
+console.log('BrowserView initialized and loaded Bing')
+
+// 设置BrowserView的事件监听器
+setupViewEventListeners(browserView, mainWindow)
+}
+
+// 建议把这部分逻辑封装，而不是直接写在createWindow里
+function setupViewEventListeners(view, win) {
+  // 1. 监听"开始加载"事件
+  view.webContents.on('did-start-loading', () => {
+    // 当事件触发时，通过IPC向主窗口发送消息
+    // 'loading-state-change'是我们自定义的频道
+    // true 表示"正在加载"
+    win.webContents.send('loading-state-change', true)
+  })
+
+  // 2. 监听"停止加载"事件
+  view.webContents.on('did-stop-loading', () => {
+    // 发送 false 表示"加载已停止"
+    win.webContents.send('loading-state-change', false)
+  })
 }
 
 // 当Electron平台准备就绪后，就执行创建窗口的指令
@@ -342,5 +362,13 @@ ipcMain.handle('browser-load-url', (event, url) => {
   } catch (error) {
     console.error('Invalid URL:', normalizedUrl, error)
     return { success: false, error: error.message }
+  }
+})
+
+// 监听浏览器刷新请求
+ipcMain.on('browser-reload', (event) => {
+  if (browserView) {
+    browserView.webContents.reload()
+    console.log('BrowserView reloaded')
   }
 })

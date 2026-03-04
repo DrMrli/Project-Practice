@@ -54,5 +54,18 @@ contextBridge.exposeInMainWorld('windowControls', {
 // 创建一个新的命名空间叫 browser，专门用来放浏览器相关的API
 contextBridge.exposeInMainWorld('browser', {
   // 使用invoke，因为未来我们可能需要主进程返回加载状态（成功/失败）
-  loadURL: (url) => ipcRenderer.invoke('browser-load-url', url)
+  loadURL: (url) => ipcRenderer.invoke('browser-load-url', url),
+  
+  // 刷新当前页面
+  reload: () => ipcRenderer.send('browser-reload'),
+  
+  // 封装一个用于接收主进程消息的API
+  // 它接收一个回调函数作为参数
+  onLoadingStateChange: (callback) => {
+    // 使用 ipcRenderer.on 来监听主进程发来的消息
+    ipcRenderer.on('loading-state-change', (event, isLoading) => {
+      // 收到消息后，调用传入的回调函数，并将isLoading状态传给Vue
+      callback(isLoading)
+    })
+  }
 })

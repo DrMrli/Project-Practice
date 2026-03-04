@@ -4,6 +4,10 @@
     <div class="titlebar-left">
       <img src="/vite.svg" alt="Logo" class="logo" />
       <span class="title">IntelliView Browser</span>
+      <!-- 将 :disabled 属性与 isLoading 状态绑定 -->
+      <button class="nav-btn" :disabled="isLoading" @click="reloadPage">
+        <img src="../assets/刷新.svg" alt="刷新" width="16" height="16" style="filter: invert(1);" />
+      </button>
     </div>
 
     <!-- 中间自适应区域 -->
@@ -33,6 +37,8 @@
       </div>
     </div>
   </header>
+  <!-- 在header下方添加进度条 -->
+  <div class="progress-bar" :class="{ 'is-loading': isLoading }"></div>
 </template>
 
 <script setup>
@@ -55,12 +61,22 @@ const close = () => {
 // 窗口最大化状态
 const isMaximized = ref(false)
 
+// 1. 创建一个响应式变量来保存加载状态
+const isLoading = ref(false)
+
 // 组件挂载时注册窗口状态变化监听器
 onMounted(() => {
   // 注册监听器，接收来自主进程的窗口状态消息
   window.windowControls.onWindowMaximized((maximized) => {
     console.log('Window maximized status changed:', maximized)
     isMaximized.value = maximized
+  })
+  
+  // 2. 注册加载状态变化监听器
+  window.browser.onLoadingStateChange((loadingStatus) => {
+    // 当收到主进程的信号时，更新我们的变量
+    isLoading.value = loadingStatus
+    console.log('Loading state changed:', isLoading.value)
   })
 })
 
@@ -72,6 +88,11 @@ const handleUrlInput = (event) => {
     // 调用我们刚刚在preload中定义的API
     window.browser.loadURL(url)
   }
+}
+
+// 刷新按钮的逻辑
+const reloadPage = () => {
+  window.browser.reload()
 }
 </script>
 
@@ -188,5 +209,49 @@ const handleUrlInput = (event) => {
 }
 .address-bar:focus {
   outline: 1px solid #0ea5e9; /* 聚焦时给个高亮 */
+}
+
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-app-region: no-drag;
+}
+
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 40px; /* 假设标题栏高度是40px */
+  left: 0;
+  height: 2px;
+  background-color: #0ea5e9; /* 进度条颜色 */
+  width: 0; /* 初始宽度为0 */
+  opacity: 0; /* 初始透明 */
+  transition: opacity 0.3s ease-out; /* 透明度变化的过渡 */
+  z-index: 999;
+}
+
+.progress-bar.is-loading {
+  opacity: 1; /* 加载时可见 */
+  width: 95%; /* 模拟快速加载到95% */
+  /* 关键：给宽度变化一个非常长的、平滑的过渡动画 */
+  transition: width 8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 </style>
