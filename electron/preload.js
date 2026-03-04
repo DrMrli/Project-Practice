@@ -39,6 +39,9 @@ contextBridge.exposeInMainWorld('windowControls', {
   // 定义'close' API
   close: () => ipcRenderer.send('window-close'),
   
+  // 定义'startResize' API
+  startResize: (position) => ipcRenderer.send('window-start-resize', position),
+  
   // 监听窗口状态变化
   onWindowMaximized: (callback) => {
     // 接收来自主进程的窗口最大化状态消息

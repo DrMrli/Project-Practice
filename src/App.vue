@@ -28,12 +28,30 @@ async function handleGetVersion() {
   }
   console.log('handleGetVersion 函数执行完成')
 }
+
+// 处理窗口调整大小
+function startResize(position) {
+  // 通知主进程开始调整窗口大小
+  if (window.windowControls && window.windowControls.startResize) {
+    window.windowControls.startResize(position)
+  }
+}
 </script>
 
 
 <template>
   <!-- 新增一个包裹容器 -->
   <div class="main-container">
+    <!-- 窗口边缘拖拽区域 -->
+    <div class="window-drag-area top" @mousedown="startResize('top')"></div>
+    <div class="window-drag-area right" @mousedown="startResize('right')"></div>
+    <div class="window-drag-area bottom" @mousedown="startResize('bottom')"></div>
+    <div class="window-drag-area left" @mousedown="startResize('left')"></div>
+    <div class="window-drag-area top-left" @mousedown="startResize('top-left')"></div>
+    <div class="window-drag-area top-right" @mousedown="startResize('top-right')"></div>
+    <div class="window-drag-area bottom-left" @mousedown="startResize('bottom-left')"></div>
+    <div class="window-drag-area bottom-right" @mousedown="startResize('bottom-right')"></div>
+    
     <TitleBar />
     <!-- 你未来的其他内容都放在这里 -->
     <div class="content-area">
@@ -82,5 +100,85 @@ html, body, #app {
 
 .content-area {
   flex-grow: 1; /* 填充剩余空间 */
+}
+
+/* 窗口边缘拖拽区域 */
+.window-drag-area {
+  position: absolute;
+  background-color: transparent;
+  -webkit-app-region: no-drag;
+  z-index: 1000;
+}
+
+/* 顶部边缘 */
+.window-drag-area.top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+/* 右侧边缘 */
+.window-drag-area.right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+}
+
+/* 底部边缘 */
+.window-drag-area.bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+/* 左侧边缘 */
+.window-drag-area.left {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+}
+
+/* 左上角 */
+.window-drag-area.top-left {
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nwse-resize;
+}
+
+/* 右上角 */
+.window-drag-area.top-right {
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nesw-resize;
+}
+
+/* 左下角 */
+.window-drag-area.bottom-left {
+  bottom: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nesw-resize;
+}
+
+/* 右下角 */
+.window-drag-area.bottom-right {
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nwse-resize;
 }
 </style>

@@ -23,6 +23,7 @@ function createWindow() {
     height: 600,
     frame: false, // 隐藏默认窗口边框和标题栏
     transparent: true, // 这是实现自定义阴影的前提
+    resizable: true, // 启用窗口调整大小功能
     // --- macOS 特有的毛玻璃效果配置 ---
     vibrancy: 'under-window', // 开启毛玻璃效果
     visualEffectState: 'active', // 让效果更明显
@@ -99,7 +100,10 @@ function createWindow() {
     mainWindow.webContents.send('window-maximized', isWindowMaximized)
   })
   
-  // 初始化BrowserView用于加载外部网页
+  // 1. 定义标题栏的高度，这个值必须和你的CSS里的高度一致！
+  const TITLEBAR_HEIGHT = 40 
+  
+  // 2. 创建一个BrowserView实例
   const { BrowserView } = require('electron')
   browserView = new BrowserView({
     webPreferences: {
@@ -108,33 +112,34 @@ function createWindow() {
     }
   })
   
-  // 将BrowserView添加到窗口
-  mainWindow.addBrowserView(browserView)
+  // 3. 将 view 附加到 mainWindow 上
+  mainWindow.setBrowserView(browserView)
   
-  // 设置BrowserView的位置和大小（位于标题栏下方）
-  const titleBarHeight = 40 // 标题栏高度
-  const { width, height } = mainWindow.getBounds()
-  browserView.setBounds({
-    x: 0,
-    y: titleBarHeight,
-    width: width,
-    height: height - titleBarHeight
+  // 4. 获取主窗口内容区域的尺寸
+  const [width, height] = mainWindow.getContentSize()
+  
+  // 5. 设置BrowserView的边界
+  browserView.setBounds({ 
+    x: 0, 
+    y: TITLEBAR_HEIGHT, 
+    width: width, 
+    height: height - TITLEBAR_HEIGHT 
   })
   
-  // 监听窗口大小变化，调整BrowserView大小
+  // 6. 监听窗口大小变化，调整BrowserView大小
   mainWindow.on('resize', () => {
-    const { width, height } = mainWindow.getBounds()
+    const [newWidth, newHeight] = mainWindow.getContentSize()
     browserView.setBounds({
       x: 0,
-      y: titleBarHeight,
-      width: width,
-      height: height - titleBarHeight
+      y: TITLEBAR_HEIGHT,
+      width: newWidth,
+      height: newHeight - TITLEBAR_HEIGHT
     })
   })
   
-  // 初始加载一个默认页面
-  browserView.webContents.loadURL('https://www.baidu.com')
-  console.log('BrowserView initialized and loaded Baidu')
+  // 7. 让 BrowserView 加载一个外部网页
+  browserView.webContents.loadURL('https://cn.bing.com')
+  console.log('BrowserView initialized and loaded Bing')
 }
 
 // 当Electron平台准备就绪后，就执行创建窗口的指令
@@ -262,7 +267,7 @@ ipcMain.on('window-maximize', (event) => {
   setTimeout(() => {
     win.webContents.send('window-maximized', isWindowMaximized)
     // 调整BrowserView大小
-    const { width, height } = win.getBounds()
+    const [width, height] = win.getContentSize()
     browserView.setBounds({
       x: 0,
       y: 40,
@@ -275,6 +280,12 @@ ipcMain.on('window-maximize', (event) => {
 ipcMain.on('window-close', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender)
   win.close()
+})
+
+// 监听窗口调整大小请求
+ipcMain.on('window-start-resize', (event, position) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  win.startResize(position)
 })
 
 // 智能翻译官：URL规范化函数
