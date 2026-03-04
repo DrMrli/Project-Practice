@@ -145,10 +145,7 @@ console.log('BrowserView initialized and loaded Bing')
 setupViewEventListeners(browserView, mainWindow)
 }
 
-// 最好封装一个函数来获取当前激活的BrowserView
-const getActiveView = () => browserView
-
-// 最好把发送状态的逻辑也封装成函数
+// 发送导航状态的函数
 function sendNavigationState(view, win) {
   if (win && !win.isDestroyed() && view && !view.webContents.isDestroyed()) {
     const navState = {
@@ -156,6 +153,7 @@ function sendNavigationState(view, win) {
       canGoForward: view.webContents.navigationHistory.canGoForward()
     }
     win.webContents.send('nav-state-change', navState)
+    console.log('Navigation state sent:', navState)
   }
 }
 
@@ -173,16 +171,16 @@ function setupViewEventListeners(view, win) {
   view.webContents.on('did-stop-loading', () => {
     // 发送 false 表示"加载已停止"
     win.webContents.send('loading-state-change', false)
-    // 别忘了在 loading 状态变化时也更新一下导航状态
+    // 加载停止时更新导航状态
     sendNavigationState(view, win)
   })
 
-  // 当页面导航完成时（包括前进/后退/加载新页面）
+  // 3. 监听页面导航完成事件
   view.webContents.on('did-navigate', () => {
     sendNavigationState(view, win)
   })
 
-  // 当页面内的哈希值变化时 (对于SPA应用很重要)
+  // 4. 监听页面内导航事件（如SPA应用的哈希变化）
   view.webContents.on('did-navigate-in-page', () => {
     sendNavigationState(view, win)
   })
@@ -400,7 +398,37 @@ ipcMain.on('browser-reload', (event) => {
 })
 
 // 导航相关的IPC监听器
-ipcMain.on('nav-go-back', () => getActiveView()?.webContents.goBack())
-ipcMain.on('nav-go-forward', () => getActiveView()?.webContents.goForward())
-ipcMain.on('nav-reload', () => getActiveView()?.webContents.reload())
-ipcMain.on('nav-stop', () => getActiveView()?.webContents.stop())
+// 最好封装一个函数来获取当前激活的BrowserView
+const getActiveView = () => browserView
+
+ipcMain.on('nav-go-back', () => {
+  const view = getActiveView()
+  if (view) {
+    view.webContents.goBack()
+    console.log('Navigating back')
+  }
+})
+
+ipcMain.on('nav-go-forward', () => {
+  const view = getActiveView()
+  if (view) {
+    view.webContents.goForward()
+    console.log('Navigating forward')
+  }
+})
+
+ipcMain.on('nav-reload', () => {
+  const view = getActiveView()
+  if (view) {
+    view.webContents.reload()
+    console.log('Reloading page')
+  }
+})
+
+ipcMain.on('nav-stop', () => {
+  const view = getActiveView()
+  if (view) {
+    view.webContents.stop()
+    console.log('Stopping page load')
+  }
+})
