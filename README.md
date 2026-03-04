@@ -12,6 +12,13 @@
 *   **IPC通信机制**: 实现了主进程与渲染进程之间的安全通信。
 *   **系统信息获取**: 通过安全的Preload脚本获取系统信息。
 *   **调试支持**: 配置了完整的调试环境，支持主进程和渲染进程调试。
+*   **自定义标题栏**: 美观的自定义标题栏，支持拖拽、双击最大化等原生操作。
+*   **窗口控制**: 实现了最小化、最大化/还原、关闭等窗口控制功能。
+*   **系统托盘**: 支持系统托盘显示、右键菜单和关闭到托盘功能。
+*   **地址栏**: 集成地址栏，支持URL输入和智能搜索。
+*   **BrowserView**: 内置浏览器内核，支持加载外部网页。
+*   **智能URL处理**: 自动补全协议、关键词搜索和安全协议过滤。
+*   **窗口拖拽**: 支持窗口边缘拖拽调整大小。
 
 ## 🚀 快速上手 (Quick Start)
 
@@ -19,10 +26,10 @@
 
 ```bash
 # 1. 克隆项目到本地
-git clone https://gitee.com/your-repo/intelliview-browser.git
+git clone https://github.com/DrMrli/Project-Practice.git
 
 # 2. 进入项目目录
-cd intelliview-browser
+cd Project-Practice
 
 # 3. 安装依赖
 npm install
@@ -62,6 +69,13 @@ npm run electron:dev
 3. 进程间通信（IPC）机制开发
 4. 系统信息获取与展示
 5. 调试环境配置
+6. 自定义标题栏UI布局设计
+7. 窗口控制功能实现（最小化、最大化、关闭）
+8. 系统托盘（Tray）与右键菜单
+9. 地址栏UI与URL导航功能
+10. BrowserView容器初始化与挂载
+11. 窗口边缘拖拽调整大小功能
+12. 智能URL处理与安全协议过滤
 
 ## 🤝 贡献指南 (Contributing)
 
